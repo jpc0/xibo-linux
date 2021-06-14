@@ -64,11 +64,19 @@ parts:
   cmake:
     plugin: nil
     override-pull: |
-      wget -nv https://apt.kitware.com/keys/kitware-archive-latest.asc -O Release.key
-      apt-key add - < Release.key
-      apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
-      apt-get update
-      apt-get install -y cmake
+      if [ `uname -m` = 'x86_64' ]
+      then
+        wget -nv https://apt.kitware.com/keys/kitware-archive-latest.asc -O Release.key
+        apt-key add - < Release.key
+        apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+        apt-get update
+        apt-get install -y cmake
+      fi
+      if [`uname -m` = 'aarch64']
+      then
+        wget https://github.com/Kitware/CMake/releases/download/v3.20.3/cmake-3.20.3-linux-aarch64.sh
+        sh cmake-3.20.3-linux-aarch64.sh --prefix=/usr/local --exclude-subdir
+      fi
     after: [g++-8]
 
   zmq: # Ubuntu 18.04 has outdated ZMQ so we are pulling it from official stable repo
@@ -109,6 +117,10 @@ parts:
       unzip -a cryptopp_pem.zip && \
       cp -r cryptopp-pem-095f08ff2ef9bca7b81036a59f2395e4f08ce2e8/. cryptopp-CRYPTOPP_8_1_0 && \
       cd cryptopp-CRYPTOPP_8_1_0 && \
+      if [ `uname -m` = 'aarch64' ] 
+      then
+          export CXXFLAGS="-g2 -O2 -march=native -mtune=native"
+      fi
       make -j4 && \
       make install
 
